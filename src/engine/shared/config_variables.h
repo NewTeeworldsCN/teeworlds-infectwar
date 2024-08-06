@@ -21,7 +21,7 @@ MACRO_CONFIG_INT(SvOldClientsPerInterval, sv_old_clients_per_interval, 5, 0, 0, 
 MACRO_CONFIG_INT(SvOldClientsInterval, sv_old_clients_interval, 20, 0, 0, CFGFLAG_SERVER, "Interval (in seconds) in which `sv_old_clients_per_interval` clients are allowed to connect")
 MACRO_CONFIG_INT(SvOldClientsSkip, sv_old_clients_skip, 20, 0, 0, CFGFLAG_SERVER, "How many legacy connection attempts to ignore before sending a legacy handshake despite the rate limit being hit")
 
-MACRO_CONFIG_STR(SvMap, sv_map, 128, "infectwar1", CFGFLAG_SERVER, "Map to use on the server")
+MACRO_CONFIG_STR(SvMap, sv_map, 128, "dm1", CFGFLAG_SERVER, "Map to use on the server")
 MACRO_CONFIG_INT(SvMaxClients, sv_max_clients, 64, 1, MAX_CLIENTS, CFGFLAG_SERVER, "Maximum number of clients that are allowed on a server")
 MACRO_CONFIG_INT(SvMaxClientsPerIP, sv_max_clients_per_ip, 4, 1, MAX_CLIENTS, CFGFLAG_SERVER, "Maximum number of clients with the same IP that can connect to the server")
 MACRO_CONFIG_INT(SvHighBandwidth, sv_high_bandwidth, 0, 0, 1, CFGFLAG_SERVER, "Use high bandwidth mode. Doubles the bandwidth required for the server. LAN use only")
