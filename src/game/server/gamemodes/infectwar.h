@@ -7,7 +7,7 @@ class CGameControllerInfectWar : public IGameController
 {
 public:
 	CGameControllerInfectWar(class CGameContext *pGameServer);
-	virtual void Tick();
+	void Tick() override;
 };
 
 #endif // GAME_SERVER_GAMEMODES_INFECTWAR_H
