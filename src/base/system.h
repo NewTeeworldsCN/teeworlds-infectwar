@@ -12,6 +12,8 @@
 
 #include <cstdint>
 
+using std::size_t;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
