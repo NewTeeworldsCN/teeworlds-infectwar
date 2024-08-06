@@ -1,11 +1,15 @@
 /* (c) Magnus Auvinen. See licence.txt in the root of the distribution for more information. */
 /* If you are missing that file, acquire a complete release at teeworlds.com.                */
 #include <engine/shared/config.h>
+
 #include <game/mapitems.h>
 
 #include <game/generated/protocol.h>
 
-#include "entities/pickup.h"
+#include <game/server/entities/laser.h>
+#include <game/server/entities/pickup.h>
+#include <game/server/entities/projectile.h>
+
 #include "gamecontroller.h"
 #include "gamecontext.h"
 
@@ -367,6 +371,119 @@ void IGameController::OnCharacterSpawn(class CCharacter *pChr)
 	// give default weapons
 	pChr->GiveWeapon(WEAPON_HAMMER, -1);
 	pChr->GiveWeapon(WEAPON_GUN, 10);
+}
+
+void IGameController::OnCharacterWeaponFired(class CCharacter *pChr, int Weapon, vec2 FirePos, vec2 Direction)
+{
+	switch(Weapon)
+	{
+		case WEAPON_HAMMER:
+		{
+			// reset objects Hit
+			pChr->m_NumObjectsHit = 0;
+			GameServer()->CreateSound(pChr->m_Pos, SOUND_HAMMER_FIRE);
+
+			CCharacter *apEnts[MAX_CLIENTS];
+			int Hits = 0;
+			int Num = GameServer()->m_World.FindEntities(FirePos, pChr->m_ProximityRadius * 0.5f, (CEntity**)apEnts,
+														MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
+
+			for (int i = 0; i < Num; ++i)
+			{
+				CCharacter *pTarget = apEnts[i];
+
+				if((pTarget == pChr) || GameServer()->Collision()->IntersectLine(FirePos, pTarget->m_Pos, nullptr, nullptr))
+					continue;
+
+				// set his velocity to fast upward (for now)
+				if(length(pTarget->m_Pos - FirePos) > 0.0f)
+					GameServer()->CreateHammerHit(pTarget->m_Pos - normalize(pTarget->m_Pos - FirePos) * pChr->m_ProximityRadius * 0.5f);
+				else
+					GameServer()->CreateHammerHit(FirePos);
+
+				vec2 Dir;
+				if(length(pTarget->m_Pos - pChr->m_Pos) > 0.0f)
+					Dir = normalize(pTarget->m_Pos - pChr->m_Pos);
+				else
+					Dir = vec2(0.f, -1.f);
+
+				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+					pChr->GetPlayer()->GetCID(), Weapon);
+				Hits++;
+			}
+
+			// if we Hit anything, we have to wait for the reload
+			if(Hits)
+				pChr->m_ReloadTimer = Server()->TickSpeed()/3;
+
+		} break;
+
+		case WEAPON_GUN:
+		{
+			new CProjectile(&GameServer()->m_World, WEAPON_GUN,
+				pChr->GetPlayer()->GetCID(),
+				FirePos,
+				Direction,
+				(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GunLifetime),
+				1, 0, 0, -1, WEAPON_GUN);
+
+			GameServer()->CreateSound(pChr->m_Pos, SOUND_GUN_FIRE);
+		} break;
+
+		case WEAPON_SHOTGUN:
+		{
+			int ShotSpread = 2;
+
+			for(int i = -ShotSpread; i <= ShotSpread; ++i)
+			{
+				float Spreading[] = {-0.185f, -0.070f, 0, 0.070f, 0.185f};
+				float a = GetAngle(Direction) + Spreading[i + 2];
+
+				float v = 1 - (absolute(i) / (float)ShotSpread);
+				float Speed = mix((float) GameServer()->Tuning()->m_ShotgunSpeeddiff, 1.0f, v);
+
+				new CProjectile(&GameServer()->m_World, WEAPON_SHOTGUN,
+					pChr->GetPlayer()->GetCID(),
+					FirePos,
+					vec2(cosf(a), sinf(a)) * Speed,
+					(int)(Server()->TickSpeed() * GameServer()->Tuning()->m_ShotgunLifetime),
+					1, 0, 0, -1, WEAPON_SHOTGUN);
+			}
+
+			GameServer()->CreateSound(pChr->m_Pos, SOUND_SHOTGUN_FIRE);
+		} break;
+
+		case WEAPON_GRENADE:
+		{
+			new CProjectile(&GameServer()->m_World, WEAPON_GRENADE,
+				pChr->GetPlayer()->GetCID(),
+				FirePos,
+				Direction,
+				(int)(Server()->TickSpeed()*GameServer()->Tuning()->m_GrenadeLifetime),
+				1, true, 0, SOUND_GRENADE_EXPLODE, WEAPON_GRENADE);
+
+			GameServer()->CreateSound(pChr->m_Pos, SOUND_GRENADE_FIRE);
+		} break;
+
+		case WEAPON_RIFLE:
+		{
+			new CLaser(&GameServer()->m_World, pChr->m_Pos, Direction, GameServer()->Tuning()->m_LaserReach, pChr->GetPlayer()->GetCID());
+			GameServer()->CreateSound(pChr->m_Pos, SOUND_RIFLE_FIRE);
+		} break;
+
+		case WEAPON_NINJA:
+		{
+			// reset Hit objects
+			pChr->m_NumObjectsHit = 0;
+
+			pChr->m_Ninja.m_ActivationDir = Direction;
+			pChr->m_Ninja.m_CurrentMoveTime = g_pData->m_Weapons.m_Ninja.m_Movetime * Server()->TickSpeed() / 1000;
+			pChr->m_Ninja.m_OldVelAmount = length(pChr->m_Core.m_Vel);
+
+			GameServer()->CreateSound(pChr->m_Pos, SOUND_NINJA_FIRE);
+		} break;
+
+	}
 }
 
 void IGameController::DoWarmup(int Seconds)

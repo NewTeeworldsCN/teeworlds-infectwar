@@ -17,7 +17,6 @@ CLaser::CLaser(CGameWorld *pGameWorld, vec2 Pos, vec2 Direction, float StartEner
 	DoBounce();
 }
 
-
 bool CLaser::HitCharacter(vec2 From, vec2 To)
 {
 	vec2 At;

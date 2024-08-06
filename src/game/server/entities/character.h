@@ -20,6 +20,8 @@ class CCharacter : public CEntity
 {
 	MACRO_ALLOC_POOL_ID()
 
+	friend class IGameController;
+	friend class CGameControllerInfectWar;
 public:
 	//character's size
 	static const int ms_PhysSize = 28;

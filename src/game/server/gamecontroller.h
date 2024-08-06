@@ -75,11 +75,11 @@ public:
 	void DoWarmup(int Seconds);
 	void TogglePause();
 
-	void StartRound();
+	virtual void StartRound();
 	void EndRound();
 	void ChangeMap(const char *pToMap);
 
-	bool IsFriendlyFire(int ClientID1, int ClientID2);
+	virtual bool IsFriendlyFire(int ClientID1, int ClientID2);
 
 	bool IsForceBalanced();
 
@@ -127,12 +127,15 @@ public:
 	*/
 	virtual int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon);
 
+	virtual void OnCharacterWeaponFired(class CCharacter *pChr, int Weapon, vec2 FirePos, vec2 Direction);
+
 
 	virtual void OnPlayerInfoChange(class CPlayer *pP);
 
 	//
 	virtual bool CanSpawn(int Team, vec2 *pPos);
 
+	virtual bool PlayerCanPickup(class CPlayer *pPlayer) { return true; };
 	/*
 
 	*/
