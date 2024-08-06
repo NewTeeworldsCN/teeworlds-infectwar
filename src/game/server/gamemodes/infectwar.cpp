@@ -4,7 +4,7 @@
 CGameControllerInfectWar::CGameControllerInfectWar(CGameContext *pGameServer)
 : IGameController(pGameServer)
 {
-	m_pGameType = "InfectWar Catch";
+	m_pGameType = "InfectWar fng";
 }
 
 void CGameControllerInfectWar::Tick()
