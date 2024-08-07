@@ -335,6 +335,8 @@ void CGameControllerInfectWar::OnPlayerSendEmoticon(CPlayer *pPlayer, int Emotic
 
 void CGameControllerInfectWar::OnCharacterSpawn(CCharacter *pChr)
 {
+	if(!m_InfectionTimer)
+		m_aInfects[pChr->GetPlayer()->GetCID()] = true;
 	// default health
 	pChr->IncreaseHealth(10);
 
