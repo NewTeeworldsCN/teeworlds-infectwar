@@ -138,7 +138,7 @@ void CTurret::Tick()
 				}
 				// if we Hit anything, we have to wait for the reload
 				if(Hits)
-					m_ReloadTimer = Server()->TickSpeed()/3;
+					m_ReloadTimer = Server()->TickSpeed()/3*2;
 				if(!m_ReloadTimer)
 					m_ReloadTimer = g_pData->m_Weapons.m_aId[m_Weapon].m_Firedelay * Server()->TickSpeed() / 1000;
 			}
@@ -220,7 +220,7 @@ void CTurret::Tick()
 				}
 
 				if(!m_ReloadTimer)
-					m_ReloadTimer = g_pData->m_Weapons.m_aId[m_Weapon].m_Firedelay * Server()->TickSpeed() / 1000;
+					m_ReloadTimer = g_pData->m_Weapons.m_aId[m_Weapon].m_Firedelay * 2.0f * Server()->TickSpeed() / 1000;
 			}
 		}
 	}
