@@ -302,6 +302,9 @@ void CGameControllerInfectWar::OnPlayerSendEmoticon(CPlayer *pPlayer, int Emotic
 	if(!pPlayer->GetCharacter()->m_Alive)
 		return;
 
+	if(m_aInfects[pPlayer->GetCID()])
+		return;
+
 	bool Attacker = false;
 	if(Emoticon != EMOTICON_GHOST && Emoticon != EMOTICON_QUESTION)
 		return;
@@ -318,6 +321,13 @@ void CGameControllerInfectWar::OnPlayerSendEmoticon(CPlayer *pPlayer, int Emotic
 
 	new CTurret(&GameServer()->m_World, pPlayer->GetCharacter()->m_Pos, Attacker,
 		pPlayer->GetCharacter()->m_ActiveWeapon, pPlayer->GetCID());
+
+	if(pPlayer->GetCharacter()->m_ActiveWeapon != WEAPON_HAMMER && pPlayer->GetCharacter()->m_ActiveWeapon != WEAPON_GUN)
+	{
+		pPlayer->GetCharacter()->m_aWeapons[pPlayer->GetCharacter()->m_ActiveWeapon].m_Got = 0;
+		pPlayer->GetCharacter()->m_aWeapons[pPlayer->GetCharacter()->m_ActiveWeapon].m_Ammo = 0;
+		pPlayer->GetCharacter()->m_ActiveWeapon = WEAPON_GUN;
+	}
 }
 
 void CGameControllerInfectWar::OnCharacterSpawn(CCharacter *pChr)
