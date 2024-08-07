@@ -310,7 +310,7 @@ void CGameControllerInfectWar::OnPlayerSendEmoticon(CPlayer *pPlayer, int Emotic
 		return;
 	if(Emoticon == EMOTICON_GHOST)
 		Attacker = true;
-	if(!Attacker && (pPlayer->GetCharacter()->m_ActiveWeapon == WEAPON_HAMMER || pPlayer->GetCharacter()->m_ActiveWeapon == WEAPON_GUN))
+	if(!Attacker && pPlayer->GetCharacter()->m_ActiveWeapon == WEAPON_GUN)
 		return;
 	int Cost = (Attacker ? 1 : 2) + pPlayer->GetCharacter()->m_ActiveWeapon;
 	if(pPlayer->GetCharacter()->m_ActiveWeapon == WEAPON_HAMMER)
