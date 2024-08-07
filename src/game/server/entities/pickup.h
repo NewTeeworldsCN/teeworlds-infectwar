@@ -10,17 +10,32 @@ const int PickupPhysSize = 14;
 class CPickup : public CEntity
 {
 public:
-	CPickup(CGameWorld *pGameWorld, int Type, int SubType = 0);
+	CPickup(CGameWorld *pGameWorld, int Type, int SubType = 0, bool OneTime = false);
 
 	void Reset() override;
 	void Tick() override;
 	void TickPaused() override;
 	void Snap(int SnappingClient) override;
 
-private:
+protected:
+	bool m_OneTime;
 	int m_Type;
 	int m_Subtype;
 	int m_SpawnTick;
+};
+
+class CDroppedPickup : public CPickup
+{
+public:
+	CDroppedPickup(CGameWorld *pGameWorld, int Type, int SubType = 0, bool OneRound = false);
+
+	void Reset() override;
+	void Tick() override;
+
+	void SetVel(vec2 Vel);
+private:
+	vec2 m_Vel;
+	bool m_OneRound;
 };
 
 #endif

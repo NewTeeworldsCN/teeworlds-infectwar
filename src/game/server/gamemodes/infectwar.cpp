@@ -5,19 +5,11 @@
 #include <game/server/entities/laser.h>
 #include <game/server/entities/pickup.h>
 #include <game/server/entities/projectile.h>
+#include <game/server/entities/turret.h>
 
 #include "infectwar.h"
 
-#include <random>
 #include <vector>
-
-static std::random_device s_RandomDevice;
-static std::default_random_engine s_RandomEngine(s_RandomDevice());
-int random_int(int Min, int Max)
-{
-    std::uniform_int_distribution<int> Distribution(Min, Max);
-    return Distribution(s_RandomEngine);
-}
 
 CGameControllerInfectWar::CGameControllerInfectWar(CGameContext *pGameServer)
 : IGameController(pGameServer)
@@ -44,6 +36,12 @@ CGameControllerInfectWar::~CGameControllerInfectWar()
 
 bool CGameControllerInfectWar::IsFriendlyFire(int ClientID1, int ClientID2)
 {
+	// -2 = only infect take damage
+	if(ClientID1 == -2 && !m_aInfects[ClientID2])
+		return true;
+	if(ClientID2 == -2 && !m_aInfects[ClientID1])
+		return true;
+
 	if(!GameServer()->m_apPlayers[ClientID1] || !GameServer()->m_apPlayers[ClientID2])
 		return false;
 
@@ -58,9 +56,109 @@ bool CGameControllerInfectWar::PlayerCanPickup(CPlayer *pPlayer)
 	return !m_aInfects[pPlayer->GetCID()];
 }
 
+bool CGameControllerInfectWar::OnEntity(int Index, vec2 Pos)
+{
+	int Type = -1;
+	int SubType = 0;
+
+	if(Index == ENTITY_SPAWN || Index == ENTITY_SPAWN_RED || Index == ENTITY_SPAWN_BLUE)
+		return IGameController::OnEntity(Index, Pos);
+	else if(Index == ENTITY_ARMOR_1)
+		Type = POWERUP_ARMOR;
+	else if(Index == ENTITY_HEALTH_1)
+		Type = POWERUP_HEALTH;
+	else if(Index == ENTITY_WEAPON_SHOTGUN)
+	{
+		Type = POWERUP_WEAPON;
+		SubType = WEAPON_SHOTGUN;
+	}
+	else if(Index == ENTITY_WEAPON_GRENADE)
+	{
+		Type = POWERUP_WEAPON;
+		SubType = WEAPON_GRENADE;
+	}
+	else if(Index == ENTITY_WEAPON_RIFLE)
+	{
+		Type = POWERUP_WEAPON;
+		SubType = WEAPON_RIFLE;
+	}
+	else if(Index == ENTITY_POWERUP_NINJA && g_Config.m_SvPowerups)
+	{
+		Type = POWERUP_NINJA;
+		SubType = WEAPON_NINJA;
+	}
+	else if(Index == ENTITY_FLAGSTAND_RED)
+	{
+		new CTurret(&GameServer()->m_World, Pos, true, random_int(WEAPON_SHOTGUN, WEAPON_GRENADE),
+			-2);
+		return true;
+	}
+
+	if(Type != -1)
+	{
+		CPickup *pPickup = new CPickup(&GameServer()->m_World, Type, SubType, true);
+		pPickup->m_Pos = Pos;
+		return true;
+	}
+
+	return false;
+}
+
 int CGameControllerInfectWar::OnCharacterDeath(CCharacter *pVictim, CPlayer *pKiller, int Weapon)
 {
 	bool VictimHadInfect = m_aInfects[pVictim->GetPlayer()->GetCID()];
+	if(VictimHadInfect)
+	{
+		float Spreading[] = {-2.875f, -1.425f, 0.f, 1.425f, 2.875f};
+		float Angle = GetAngle(vec2(0.f, -1.f)) + Spreading[random_int(0, 4)];
+		CDroppedPickup *pPickup = new CDroppedPickup(&GameServer()->m_World, 
+			random_int(0, 1) ? POWERUP_ARMOR : POWERUP_HEALTH,
+			0,
+			true);
+		pPickup->SetVel(GetDir(Angle) * 8.0f);
+		pPickup->m_Pos = pVictim->m_Pos;
+	}
+	else
+	{
+		// drop weapon
+		std::vector<int> DroppedWeapons;
+		for(int i = WEAPON_SHOTGUN; i < NUM_WEAPONS; i++)
+		{
+			if(pVictim->m_aWeapons[i].m_Got)
+				DroppedWeapons.push_back(i);
+		}
+
+		if(!DroppedWeapons.empty())
+		{
+			const int Start = -(int) (DroppedWeapons.size() / 2);
+			float Spreading[] = {-2.875f, -1.425f, 1.425f, 2.875f};
+			for(int i = Start; i < Start + (int) DroppedWeapons.size(); i++)
+			{
+				float Angle = GetAngle(vec2(0.f, -1.f)) + Spreading[i + 2];
+				CDroppedPickup *pPickup = new CDroppedPickup(&GameServer()->m_World, 
+					POWERUP_WEAPON,
+					DroppedWeapons[i - Start],
+					true);
+				pPickup->SetVel(GetDir(Angle) * 8.0f);
+				pPickup->m_Pos = pVictim->m_Pos;
+			}
+		}
+
+		{
+			float Spreading[] = {-2.875f, -1.425f, 0.f, 1.425f, 2.875f};
+			for(int i = 0; i < pVictim->m_Armor; i++)
+			{
+				float Angle = GetAngle(vec2(0.f, -1.f)) + Spreading[i % 5];
+				CDroppedPickup *pPickup = new CDroppedPickup(&GameServer()->m_World, 
+					POWERUP_ARMOR,
+					0,
+					true);
+				pPickup->SetVel(GetDir(Angle) * 8.0f);
+				pPickup->m_Pos = pVictim->m_Pos;
+			}
+		}
+	}
+
 	if(!m_InfectionTimer)
 		m_aInfects[pVictim->GetPlayer()->GetCID()] = true;
 
@@ -193,6 +291,33 @@ void CGameControllerInfectWar::OnCharacterWeaponFired(CCharacter *pChr, int Weap
 		} break;
 
 	}
+}
+
+void CGameControllerInfectWar::OnPlayerSendEmoticon(CPlayer *pPlayer, int Emoticon)
+{
+	if(!pPlayer)
+		return;
+	if(!pPlayer->GetCharacter())
+		return;
+	if(!pPlayer->GetCharacter()->m_Alive)
+		return;
+
+	bool Attacker = false;
+	if(Emoticon != EMOTICON_GHOST && Emoticon != EMOTICON_QUESTION)
+		return;
+	if(Emoticon == EMOTICON_GHOST)
+		Attacker = true;
+	if(!Attacker && (pPlayer->GetCharacter()->m_ActiveWeapon == WEAPON_HAMMER || pPlayer->GetCharacter()->m_ActiveWeapon == WEAPON_GUN))
+		return;
+	int Cost = (Attacker ? 0 : 1) + pPlayer->GetCharacter()->m_ActiveWeapon;
+	if(pPlayer->GetCharacter()->m_Armor < Cost)
+		return;
+
+	pPlayer->GetCharacter()->m_Armor -= Cost;
+	GameServer()->CreateSound(pPlayer->GetCharacter()->m_Pos, SOUND_CTF_GRAB_PL);
+
+	new CTurret(&GameServer()->m_World, pPlayer->GetCharacter()->m_Pos, Attacker,
+		pPlayer->GetCharacter()->m_ActiveWeapon, pPlayer->GetCID());
 }
 
 void CGameControllerInfectWar::OnCharacterSpawn(CCharacter *pChr)

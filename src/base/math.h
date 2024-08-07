@@ -5,8 +5,17 @@
 
 #include <algorithm>
 #include <cstdlib>
+#include <random>
 
 using std::clamp;
+
+static std::random_device s_RandomDevice;
+static std::default_random_engine s_RandomEngine(s_RandomDevice());
+inline int random_int(int Min, int Max)
+{
+    std::uniform_int_distribution<int> Distribution(Min, Max);
+    return Distribution(s_RandomEngine);
+}
 
 inline float sign(float f)
 {

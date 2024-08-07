@@ -20,10 +20,12 @@ public:
 	/* overrides start */
 	bool IsFriendlyFire(int ClientID1, int ClientID2) override;
 	bool PlayerCanPickup(class CPlayer *pPlayer) override;
+	bool OnEntity(int Index, vec2 Pos) override;
 
 	int OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon) override;
 
 	void OnCharacterWeaponFired(class CCharacter *pChr, int Weapon, vec2 FirePos, vec2 Direction) override;
+	void OnPlayerSendEmoticon(class CPlayer *pPlayer, int Emoticon) override;
 	void OnCharacterSpawn(class CCharacter *pChr) override;
 	void Snap(int SnappingClient) override;
 	void DoWincheck() override;

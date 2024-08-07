@@ -131,7 +131,8 @@ private:
 	int m_ReckoningTick; // tick that we are performing dead reckoning From
 	CCharacterCore m_SendCore; // core that we should send
 	CCharacterCore m_ReckoningCore; // the dead reckoning core
-
+public:
+	CCharacterCore *Core() { return &m_Core; }
 };
 
 #endif
