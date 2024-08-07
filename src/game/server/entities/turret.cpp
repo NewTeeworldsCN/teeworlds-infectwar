@@ -51,12 +51,14 @@ void CTurret::Reset()
 void CTurret::Tick()
 {
 	m_DragPos = m_Pos;
-
 	if(m_ReloadTimer)
-	{
 		m_ReloadTimer--;
-		if(m_ReloadTimer)
-			return;
+
+	if(m_Owner != -2)
+	{
+		if(!GameServer()->GetPlayerChar(m_Owner))
+			Reset();
+		return;
 	}
 
 	if(m_Attacker)
@@ -96,6 +98,9 @@ void CTurret::Tick()
 				}
 			}
 		}
+
+		if(m_ReloadTimer)
+			return;
 
 		if(pCloset)
 		{
@@ -217,7 +222,7 @@ void CTurret::Tick()
 			}
 		}
 	}
-	else
+	else if(!m_ReloadTimer)
 	{
 		float Spreading[] = {-2.875f, -1.425f, 0.f, 1.425f, 2.875f};
 		float Angle = GetAngle(vec2(0.f, -1.f)) + Spreading[random_int(0, 4)];
