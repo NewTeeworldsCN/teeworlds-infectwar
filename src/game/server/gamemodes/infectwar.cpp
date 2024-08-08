@@ -352,7 +352,7 @@ void CGameControllerInfectWar::OnCharacterSpawn(CCharacter *pChr)
 
 	if(m_aInfects[pChr->GetPlayer()->GetCID()])
 	{
-		pChr->m_Health += round_to_int(m_aDeathCount[pChr->GetPlayer()->GetCID()] * 1.5);
+		pChr->m_Health += m_aDeathCount[pChr->GetPlayer()->GetCID()] * 2;
 	}
 	else
 	{
