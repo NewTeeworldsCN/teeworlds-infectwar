@@ -233,6 +233,11 @@ void CGameControllerInfectWar::OnCharacterWeaponFired(CCharacter *pChr, int Weap
 
 				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Damage,
 					pChr->GetPlayer()->GetCID(), Weapon);
+				if(m_aInfects[pChr->GetPlayer()->GetCID()] && m_aInfects[pTarget->GetPlayer()->GetCID()])
+				{
+					if(!pTarget->IncreaseHealth(g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage))
+						pTarget->IncreaseArmor(g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage);
+				}
 				Hits++;
 			}
 
