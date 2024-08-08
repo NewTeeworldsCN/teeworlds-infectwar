@@ -515,7 +515,7 @@ void CGameControllerInfectWar::Tick()
 			// respawn turret
 			for(auto& Point : m_vMapTurretPoints)
 			{
-				new CTurret(&GameServer()->m_World, Point, true, random_int(WEAPON_SHOTGUN, WEAPON_GRENADE),
+				new CTurret(&GameServer()->m_World, Point, true, random_int(WEAPON_SHOTGUN, WEAPON_RIFLE),
 					-2);
 			}
 			m_RespawnMapTurret = false;
