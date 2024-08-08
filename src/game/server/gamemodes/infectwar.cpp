@@ -24,6 +24,8 @@ CGameControllerInfectWar::CGameControllerInfectWar(CGameContext *pGameServer)
 	m_InfectionTimer = g_Config.m_SvInfectionTime * Server()->TickSpeed();
 
 	mem_zero(m_aInfects, sizeof(m_aInfects));
+	mem_zero(m_aDeathCount, sizeof(m_aDeathCount));
+	mem_zero(m_aFixLaserPoints, sizeof(m_aFixLaserPoints));
 }
 
 CGameControllerInfectWar::~CGameControllerInfectWar()
@@ -89,6 +91,7 @@ bool CGameControllerInfectWar::OnEntity(int Index, vec2 Pos)
 	}
 	else if(Index == ENTITY_FLAGSTAND_RED)
 	{
+		m_vMapTurretPoints.push_back(Pos);
 		new CTurret(&GameServer()->m_World, Pos, true, random_int(WEAPON_SHOTGUN, WEAPON_GRENADE),
 			-2);
 		return true;
@@ -169,14 +172,18 @@ int CGameControllerInfectWar::OnCharacterDeath(CCharacter *pVictim, CPlayer *pKi
 
 	if(pKiller == pVictim->GetPlayer())
 	{
-		pVictim->GetPlayer()->m_Score--; // suicide
+		if(!VictimHadInfect)
+			pVictim->GetPlayer()->m_Score--; // suicide
 	}
 	else
 	{
 		if(m_aInfects[pKiller->GetCID()] && !VictimHadInfect)
-			pKiller->m_Score += 3; // infected kill
+			pKiller->m_Score += max(3, pVictim->GetPlayer()->m_Score / 3); // infected kill
 		else
 			pKiller->m_Score++; // human kill
+
+		if(VictimHadInfect)
+			m_aDeathCount[pVictim->GetPlayer()->GetCID()]++;
 	}
 	if(Weapon == WEAPON_SELF)
 		pVictim->GetPlayer()->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()*3.0f;
@@ -343,8 +350,15 @@ void CGameControllerInfectWar::OnCharacterSpawn(CCharacter *pChr)
 	// give default weapons
 	pChr->GiveWeapon(WEAPON_HAMMER, -1);
 
-	if(!m_aInfects[pChr->GetPlayer()->GetCID()])
+	if(m_aInfects[pChr->GetPlayer()->GetCID()])
+	{
+		pChr->m_Health += m_aDeathCount[pChr->GetPlayer()->GetCID()] / 2;
+	}
+	else
+	{
+		pChr->IncreaseArmor(2);
 		pChr->GiveWeapon(WEAPON_GUN, -1);
+	}
 }
 
 void CGameControllerInfectWar::StartInfection()
@@ -479,6 +493,15 @@ void CGameControllerInfectWar::StartRound()
 	m_InfectionTimer = g_Config.m_SvInfectionTime * Server()->TickSpeed();
 
 	mem_zero(m_aInfects, sizeof(m_aInfects));
+	mem_zero(m_aDeathCount, sizeof(m_aDeathCount));
+	mem_zero(m_aFixLaserPoints, sizeof(m_aFixLaserPoints));
+
+	// reset turret
+	for(auto& Point : m_vMapTurretPoints)
+	{
+		new CTurret(&GameServer()->m_World, Point, true, random_int(WEAPON_SHOTGUN, WEAPON_GRENADE),
+			-2);
+	}
 
 	IGameController::StartRound();
 }

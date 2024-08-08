@@ -6,11 +6,14 @@
 class CGameControllerInfectWar : public IGameController
 {
 	bool m_aInfects[MAX_CLIENTS];
+	int m_aDeathCount[MAX_CLIENTS];
+
 	bool m_aFixLasers[MAX_CLIENTS];
 	int m_aFixLaserIDs[MAX_CLIENTS];
 	vec2 m_aFixLaserPoints[MAX_CLIENTS];
 
 	int m_InfectionTimer;
+	std::vector<vec2> m_vMapTurretPoints;
 public:
 	CGameControllerInfectWar(class CGameContext *pGameServer);
 	~CGameControllerInfectWar();
