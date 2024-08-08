@@ -94,8 +94,6 @@ bool CGameControllerInfectWar::OnEntity(int Index, vec2 Pos)
 	else if(Index == ENTITY_FLAGSTAND_RED)
 	{
 		m_vMapTurretPoints.push_back(Pos);
-		new CTurret(&GameServer()->m_World, Pos, true, random_int(WEAPON_SHOTGUN, WEAPON_GRENADE),
-			-2);
 		return true;
 	}
 
