@@ -5,6 +5,8 @@
 
 class CGameControllerInfectWar : public IGameController
 {
+	bool m_RespawnMapTurret;
+
 	bool m_aInfects[MAX_CLIENTS];
 	int m_aDeathCount[MAX_CLIENTS];
 

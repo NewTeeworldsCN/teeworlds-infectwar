@@ -23,6 +23,8 @@ CGameControllerInfectWar::CGameControllerInfectWar(CGameContext *pGameServer)
 
 	m_InfectionTimer = g_Config.m_SvInfectionTime * Server()->TickSpeed();
 
+	m_RespawnMapTurret = true;
+
 	mem_zero(m_aInfects, sizeof(m_aInfects));
 	mem_zero(m_aDeathCount, sizeof(m_aDeathCount));
 	mem_zero(m_aFixLaserPoints, sizeof(m_aFixLaserPoints));
@@ -496,12 +498,7 @@ void CGameControllerInfectWar::StartRound()
 	mem_zero(m_aDeathCount, sizeof(m_aDeathCount));
 	mem_zero(m_aFixLaserPoints, sizeof(m_aFixLaserPoints));
 
-	// reset turret
-	for(auto& Point : m_vMapTurretPoints)
-	{
-		new CTurret(&GameServer()->m_World, Point, true, random_int(WEAPON_SHOTGUN, WEAPON_GRENADE),
-			-2);
-	}
+	m_RespawnMapTurret = true;
 
 	IGameController::StartRound();
 }
@@ -510,6 +507,17 @@ void CGameControllerInfectWar::Tick()
 {
 	if(m_GameOverTick == -1 && !m_Warmup && !GameServer()->m_World.m_ResetRequested)
 	{
+		if(m_RespawnMapTurret)
+		{
+			// respawn turret
+			for(auto& Point : m_vMapTurretPoints)
+			{
+				new CTurret(&GameServer()->m_World, Point, true, random_int(WEAPON_SHOTGUN, WEAPON_GRENADE),
+					-2);
+			}
+			m_RespawnMapTurret = false;
+		}
+
 		if(m_InfectionTimer)
 		{
 			m_InfectionTimer--;
