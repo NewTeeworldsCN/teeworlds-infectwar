@@ -258,6 +258,9 @@ void CTurret::TickPaused()
 
 void CTurret::Snap(int SnappingClient)
 {
+	if(NetworkClipped(SnappingClient))
+		return;
+
 	if(m_Weapon == WEAPON_HAMMER)
 	{
 		CNetObj_Pickup *pPickup = static_cast<CNetObj_Pickup *>(Server()->SnapNewItem(NETOBJTYPE_PICKUP, m_ID, sizeof(CNetObj_Pickup)));
