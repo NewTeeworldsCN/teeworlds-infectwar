@@ -110,7 +110,7 @@ void CTurret::Tick()
 			{
 				CCharacter *apEnts[MAX_CLIENTS];
 				int Hits = 0;
-				int Num = GameServer()->m_World.FindEntities(m_Pos, pCloset->m_ProximityRadius * 1.5f, (CEntity**)apEnts,
+				int Num = GameServer()->m_World.FindEntities(m_Pos, pCloset->m_ProximityRadius * 4.5f, (CEntity**)apEnts,
 															MAX_CLIENTS, CGameWorld::ENTTYPE_CHARACTER);
 
 				for (int i = 0; i < Num; ++i)
