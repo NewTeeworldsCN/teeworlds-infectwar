@@ -83,7 +83,7 @@ void CTurret::Tick()
 				pCloset = pChr;
 				if(ClosetDistance < m_ProximityRadius)
 				{
-					pChr->TakeDamage(vec2(0.f, -1.f), 15, m_Owner, m_Weapon);
+					pChr->TakeDamage(vec2(0.f, -1.f), m_Weapon == WEAPON_NINJA ? 15 : 3, m_Owner, m_Weapon);
 					if(m_Weapon == WEAPON_NINJA)
 					{
 						m_TouchNum++;
@@ -246,7 +246,7 @@ void CTurret::Tick()
 		pPickup->SetVel(GetDir(Angle) * 8.0f);
 		pPickup->m_Pos = m_Pos;
 
-		m_ReloadTimer = Server()->TickSpeed() * (m_Weapon + 1) * 5;
+		m_ReloadTimer = Server()->TickSpeed() * (m_Weapon == WEAPON_HAMMER ? 2 : (m_Weapon + 1)) * 5;
 	}
 }
 
